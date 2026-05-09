@@ -109,7 +109,7 @@ df_clean <- df_clean %>%
       str_trim() %>%
       str_replace_all("\\s+", " ") %>%
       str_replace("^Doctor\\s+", "") %>%
-      str_replace("^Dr\\.\\s*", "") %>%
+      str_replace("^Dr\\.?\\s*", "") %>%
       str_to_title() %>%
       paste0("Dr. ", .)
   )
