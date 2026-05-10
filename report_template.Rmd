@@ -1,0 +1,174 @@
+---
+title: "Biomedical Database Quality Report"
+author: "Biomedical Data Management System"
+date: "`r Sys.Date()`"
+output: html_document
+
+params:
+  patients: NA
+  audit_log: NA
+  metrics: NA
+---
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(ggplot2)
+
+patients <- params$patients
+audit_log <- params$audit_log
+metrics <- params$metrics
+```
+
+# Executive Summary
+
+This automated report summarizes the current state of the biomedical database, including patient statistics, data quality indicators, confidence scores, outlier detection, and audit activity.
+
+---
+
+# Database Overview
+
+```{r echo=FALSE}
+metrics$completeness_summary
+```
+
+---
+
+# Clinical Indicators
+
+## Average Patient Age
+
+```{r echo=FALSE}
+round(mean(patients$age, na.rm = TRUE), 1)
+```
+
+## Percentage of Smokers
+
+```{r echo=FALSE}
+round(mean(patients$smoker, na.rm = TRUE) * 100, 1)
+```
+
+---
+
+# Sex Distribution
+
+```{r echo=FALSE}
+sex_data <- patients %>%
+  count(sex)
+
+ggplot(sex_data, aes(x = sex, y = n)) +
+  geom_col(fill = "#1F4E79") +
+  theme_minimal() +
+  labs(
+    title = "Sex Distribution",
+    x = "Sex",
+    y = "Number of Patients"
+  )
+```
+
+---
+
+# Blood Type Distribution
+
+```{r echo=FALSE}
+blood_data <- patients %>%
+  count(blood_type)
+
+ggplot(blood_data, aes(x = blood_type, y = n)) +
+  geom_col(fill = "#2A9D8F") +
+  theme_minimal() +
+  labs(
+    title = "Blood Type Distribution",
+    x = "Blood Type",
+    y = "Number of Patients"
+  )
+```
+
+---
+
+# Missing Values Analysis
+
+```{r echo=FALSE}
+metrics$missingness_by_variable
+```
+
+```{r echo=FALSE}
+missing_plot_data <- metrics$missingness_by_variable %>%
+  filter(missing_count > 0)
+
+ggplot(missing_plot_data, aes(x = reorder(variable_name, missing_count), y = missing_count)) +
+  geom_col(fill = "#5C6770") +
+  coord_flip() +
+  theme_minimal() +
+  labs(
+    title = "Variables with Missing Values",
+    x = "Variable",
+    y = "Missing Values"
+  )
+```
+
+---
+
+# Record Confidence Score
+
+```{r echo=FALSE}
+metrics$record_confidence_score %>%
+  arrange(confidence_score) %>%
+  head(20)
+```
+
+---
+
+# BMI Quality Table
+
+```{r echo=FALSE}
+metrics$bmi_table %>%
+  head(20)
+```
+
+---
+
+# Z-Score Outliers
+
+```{r echo=FALSE}
+metrics$zscore_outliers
+```
+
+---
+
+# Recent Audit Activity
+
+```{r echo=FALSE}
+audit_log %>%
+  arrange(desc(changed_at)) %>%
+  select(
+    table_name,
+    record_id,
+    action,
+    changed_by,
+    changed_at
+  ) %>%
+  head(20)
+```
+
+---
+
+# Conclusions
+
+The biomedical database demonstrates a functional architecture for clinical data ingestion, cleaning, storage, visualization, traceability, and automated reporting.
+
+The implemented system supports:
+
+- structured clinical records;
+- secure patient insertion;
+- validation before database insertion;
+- storage of warning and critical quality flags;
+- rejected-submission tracking;
+- audit trail traceability;
+- reactive dashboard visualization;
+- missing-value analysis;
+- BMI plausibility monitoring;
+- z-score outlier detection;
+- record-level confidence scoring;
+- automated HTML reporting.
+
+This workflow simulates a simplified biomedical information management system based on PostgreSQL, Shiny, validation rules, and data quality governance.
